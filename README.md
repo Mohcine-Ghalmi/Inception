@@ -554,3 +554,95 @@ if the ssl.tls certificate file does not exist<br>
 The nginx/ directory will be like this:
 
 ![Alt text](img/image11.png)
+
+
+<hr>
+
+### 🚢 Docker Compose Configuration:
+
+![Alt text](img/image12.png)
+
+Let's go to the srcs/ directory and open a file named docker-compose.yml.<br>
+
+I wrote the explanations as comment lines in the file.
+
+<pre>
+    <code>
+        # File version
+        version: '3'
+
+        # Services (Container) settings
+        services:
+
+        nginx:
+            # Container Name to be Created
+            container_name: nginx
+
+            # Dockerfile file path
+            build: ./requirements/nginx
+
+        # Specifies the containers to which the container is connected before initializing it.
+            # To be listened to: Ports to be forwarded
+            ports:
+            - 443:443
+            
+            # Directory where files will be stored
+            volumes:
+            - wordpress_data:/var/www/html
+
+            # Automatically restarts the container
+            restart: always
+
+            # The way that the container is connected to
+            networks:
+            - network
+
+        mariadb:
+            container_name: mariadb
+            build: ./requirements/mariadb
+            volumes:
+            - mariadb_data:/var/lib/mysql
+            networks:
+            - network
+            restart: always
+
+            # Assigns the data in the .env file to environment variables
+            env_file:
+            - .env
+
+        wordpress:
+            container_name: wordpress
+            depends_on:
+            - mariadb
+            build:
+            context: ./requirements/wordpress
+            dockerfile: Dockerfile
+            restart: always
+            env_file:
+            - .env
+            volumes:
+            - wordpress_data:/var/www/html
+            networks:
+            - network
+
+        # It stores service data and establishes a connection with the main system..
+        volumes:
+        mariadb_data:
+            driver: local
+            driver_opts:
+            type: none
+            device: /home/data/mysql
+            o: bind
+        wordpress_data:
+            driver: local
+            driver_opts:
+            type: none
+            device: /home/data/wordpress
+            o: bind
+
+        # Connects to default network drive
+        networks:
+        network:
+            driver: bridge
+    </code>
+</pre>
