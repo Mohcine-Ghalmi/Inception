@@ -124,7 +124,6 @@ First, let's set up the Dockerfile in this file. Let's create a file called Dock
 
         COPY ./conf/www.conf /etc/php/7.3/fpm/pool.d/
 
-        RUN mkdir /run/php
 
         COPY ./tools/create_wordpress.sh /usr/local/bin/
         RUN chmod +x /usr/local/bin/create_wordpress.sh
@@ -160,8 +159,6 @@ First, let's set up the Dockerfile in this file. Let's create a file called Dock
 `RUN curl -O ...`: Downloads the WP-CLI (WordPress Command Line Interface) tool and makes it executable. WP-CLI is used for managing WordPress installations from the command line.</br>
 
 `COPY ./conf/www.conf /etc/php/7.3/fpm/pool.d/`: Copies a custom PHP-FPM (FastCGI Process Manager) configuration file (www.conf) to the appropriate directory in the container. This file likely contains settings related to PHP-FPM pool configurations.</br>
-
-`RUN mkdir /run/php`: Creates a directory for PHP-FPM to store its socket files.</br>
 
 `COPY ./tools/create_wordpress.sh /usr/local/bin/`: Copies a shell script (create_wordpress.sh) to /usr/local/bin/ inside the container. This script is used for initializing a WordPress installation.</br>
 
