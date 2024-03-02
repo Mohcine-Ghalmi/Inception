@@ -403,3 +403,154 @@ The mariadb/ directory will be like this:
 <br>
 
 ![Alt text](img/image9.png)
+
+<hr>
+
+### 🛡 Nginx
+
+![Alt text](img/image10.png)
+
+Let's go to the nginx/ directory and create the Dockerfile file.
+
+<pre>
+    <code>
+        FROM debian:stable
+
+        RUN apt update && apt install -y nginx openssl
+
+        RUN mkdir /etc/nginx/ssl
+
+        COPY ./conf/nginx.conf /etc/nginx/sites-enabled/default
+        COPY ./tools/nginx_start.sh /var/www
+
+        RUN chmod +x /var/www/nginx_start.sh
+        RUN mkdir -p /run/nginx
+
+        ENTRYPOINT ["var/www/nginx_start.sh"]
+
+        EXPOSE 443
+
+        CMD ["nginx", "-g", "daemon off;"]
+    </code>
+</pre>
+
+
+### ⚙️ explanation
+`CMD ["nginx", "-g", "daemon off;"]`: This is the command and its parameters specified in the form of a JSON array.
+
+- "nginx": This is the command to run when the container starts. In this case, it's the Nginx web server executable.
+
+- "-g": This is an option flag for Nginx that allows specifying global configurations inline. In this case, it's used to provide the daemon off; directive.
+
+- "daemon off;": This directive is used to prevent Nginx from running in the background as a daemon. It keeps Nginx running in the foreground, which is necessary for Docker containers to remain running.
+
+<hr>
+Let's go to the conf/ directory and create the nginx.conf file.
+
+
+<pre>
+        server {
+            # 443 listens on the port and connects to the mghalmi.42.fr server
+            listen 443 ssl;
+            listen [::]:443 ssl;
+            server_name mghalmi.42.fr;
+
+            # SSL determines its certificates (creates it in the tools file)
+            ssl_certificate  /etc/nginx/ssl/nginx.crt;
+            ssl_certificate_key /etc/nginx/ssl/nginx.key;
+            ssl_protocols  TLSv1.2 TLSv1.3;
+
+            # Default directory on server
+            root /var/www/html;
+            index index.php index.nginx-debian.html;
+
+            # It matches incoming requests in order. $uri, index.php and incoming arguments
+            location / {
+            try_files $uri $uri/ /index.php$is_args$args;
+            }
+
+            # PHP Determines requests to files
+            location ~ \.php$ {
+            fastcgi_split_path_info ^(.+\.php)(/.+)$;
+            fastcgi_pass wordpress:9000;
+            fastcgi_index index.php;
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+            }
+        }
+</pre>
+
+### ⚙️ explanation
+
+- Server Block:
+
+Begins with `server { and ends with }`: Defines the settings for a particular server block.
+
+- Listen Directive:
+
+`listen 443 ssl;`: Listens for HTTPS connections on port 443.<br>
+
+`listen [::]:443 ssl;`: Listens for IPv6 HTTPS connections on port 443.<br>
+
+- Server Name:
+
+
+`server_name mghalmi.42.fr;`: Specifies the server name that this configuration applies to.
+
+- SSL Configuration:
+
+`ssl_certificate` and `ssl_certificate_key`: Specifies the paths to the SSL certificate and private key files.<rbr>
+
+`ssl_protocols TLSv1.2 TLSv1.3;`: Specifies the SSL/TLS protocols to be used.
+
+- Root Directive:
+
+`root /var/www/html;`: Sets the root directory for serving files.
+
+- Index Directive:
+
+`index index.php index.nginx-debian.html;`: Specifies the default files to serve when a directory is requested.<br>
+
+- Location Blocks:
+
+`Location /`: Handles requests for static files and passes PHP requests to the PHP FastCGI Process Manager (PHP-FPM).<br>
+
+`try_files $uri $uri/ /index.php$is_args$args;`: Tries to serve the requested URI directly, then tries the URI as a directory, and finally passes the request to index.php if neither exists. <br>
+
+`Location ~ \.php$`: Handles requests for PHP files.<br>
+
+`fastcgi_pass wordpress:9000;`: Forwards PHP requests to the PHP-FPM server listening on port 9000.<br>
+`fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;`: Sets the SCRIPT_FILENAME parameter required by PHP-FPM.<br>
+
+<hr>
+Let's create a file named nginx_start.sh in the tools/ directory.<br>
+We will create the SSL Certificate using OpenSSL.
+
+<pre>
+    <code>
+        #!/bin/bash
+
+        if [ ! -f /etc/nginx/ssl/nginx.crt ]; then
+            echo "Nginx: setting up ssl ...";
+            openssl req -x509 -nodes -days 365 -newkey rsa:4096 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt -subj "/C=TR/ST=KOCAELI/L=GEBZE/O=42Kocaeli/CN=ehazir.42.fr";
+            echo "Nginx: ssl is set up!";
+        fi
+
+        exec "$@"
+    </code>
+</pre>
+
+
+### ⚙️ explanation
+
+` if [ ! -f /etc/nginx/ssl/nginx.crt ];`: This if statement checks if the SSL/TLS certificate file (nginx.crt) does not exist in the specified directory (/etc/nginx/ssl/).<br>
+
+if the ssl.tls certificate file does not exist<br>
+
+`openssl req -x509 -nodes -days 365 -newkey rsa:4096 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt -subj "/C=TR/ST=KOCAELI/L=GEBZE/O=42Kocaeli/CN=mghalmi.42.fr";` : he script generates a self-signed SSL/TLS certificate (nginx.crt) and private key (nginx.key) using the openssl req command The generated certificate is valid for 365 days (-days 365), and a new RSA private key of length 4096 bits (-newkey rsa:4096) is generated. The -subj option specifies the subject of the certificate, including the country (C), state (ST), locality (L), organization (O), and common name (CN). x509: Creates signed certificate.
+
+<hr>
+The nginx/ directory will be like this:
+
+![Alt text](img/image11.png)

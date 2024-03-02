@@ -1,8 +1,17 @@
-FROM debian:stable
+ FROM debian:stable
 
-RUN apt update  -y
-RUN apt upgrade -y
-RUN apt install -y nginx openssl
-RUN apt install -y openssl
-RUN mkdir -p /ssl
-RUN openssl genpkey
+RUN apt update && apt install -y nginx openssl
+
+RUN mkdir /etc/nginx/ssl
+
+COPY ./conf/nginx.conf /etc/nginx/sites-enabled/default
+COPY ./tools/nginx_start.sh /var/www
+
+RUN chmod +x /var/www/nginx_start.sh
+RUN mkdir -p /run/nginx
+
+ENTRYPOINT ["var/www/nginx_start.sh"]
+
+EXPOSE 443
+
+CMD ["nginx", "-g", "daemon off;"]
