@@ -266,3 +266,140 @@ These commands download WordPress and edit the wp-config file.
 The wordpress/ directory will be as follows:<br>
 
 ![Alt text](img/image7.png)
+
+<hr>
+
+### 💣 MariaDB
+![Alt text](img/image8.png)
+Let's go to the mariadb/ directory and create the Dockerfile file.<br>
+
+<pre>
+    <code>
+        FROM debian:stable
+
+        RUN apt update -y
+        RUN apt install -y mariadb-server
+
+        EXPOSE 3306
+
+        COPY ./conf/50-server.cnf /etc/mysql/mariadb.conf.d/
+        COPY ./tools /var/www/
+
+        RUN service mysql start && mysql < /var/www/initial_db.sql && rm -f /var/www/initial_db.sql;
+
+        CMD ["mysqld"]
+    </code>
+</pre>
+
+
+### ⚙️ explanation
+`FROM debian:stabel`: This line specifies the base image for the Docker container, which is Debian Buster.
+
+`EXPOSE 3306`: This instruction exposes port 3306, the default port used by MariaDB, to allow connections from other containers or the host system.
+
+
+`RUN service mysql start && mysql < /var/www/initial_db.sql && rm -f /var/www/initial_db.sql`: This line starts the MariaDB service (service mysql start), executes an SQL script (mysql < /var/www/initial_db.sql) to initialize the database with initial data, and then removes the SQL script file to clean up (rm -f /var/www/initial_db.sql). This is typically done in one RUN instruction to reduce the number of layers in the Docker image.
+
+`CMD ["mysqld"]`: This command specifies the default command to run when the container starts. In this case, it starts the MariaDB server (mysqld), allowing the container to function as a MariaDB database server by default.
+<hr>
+
+Let's go to the conf/ directory and create a file named 50-server.cnf.<br>
+This file contains the basic configuration settings of MariaDB.
+
+<pre>
+    <code>
+        [mysqld]
+
+        user                    = mysql
+        pid-file                = /run/mysqld/mysqld.pid
+        socket                  = /run/mysqld/mysqld.sock
+        port                    = 3306
+        basedir                 = /usr
+        datadir                 = /var/lib/mysql
+        tmpdir                  = /tmp
+        lc-messages-dir         = /usr/share/mysql
+
+        query_cache_size        = 16M
+        log_error = /var/log/mysql/error.log
+        expire_logs_days        = 10
+        character-set-server    = utf8mb4
+        collation-server        = utf8mb4_general_ci
+    </code>
+</pre>
+
+### ⚙️ explanation
+
+
+`[mysqld]`: This section header indicates that the configuration settings that follow are specific to the MySQL server daemon (mysqld).<br>
+
+`user = mysql`: Specifies the user under which the MySQL server process (mysqld) runs. Typically, it's the user mysql.<br>
+
+`pid-file = /run/mysqld/mysqld.pid`: Specifies the location of the process ID (PID) file. This file contains the process ID of the MySQL server process.<br>
+
+`socket = /run/mysqld/mysqld.sock`: Specifies the location of the Unix socket file used for local client connections to the MySQL server.
+
+`port = 3306`: Specifies the port on which the MySQL server listens for TCP/IP connections. The default port for MySQL is 3306.<br>
+
+`basedir = /usr`: Specifies the base directory where MySQL binaries, libraries, and other files are located.<br>
+
+`datadir = /var/lib/mysql`: Specifies the directory where MySQL stores its data files, including databases and tables.<br>
+
+`tmpdir = /tmp`: Specifies the directory where MySQL stores temporary files, such as temporary tables or query results.<br>
+
+`lc-messages-dir = /usr/share/mysql`: Specifies the directory where MySQL localization messages are stored.<br>
+
+`query_cache_size = 16M`: Sets the size of the query cache, which is used to cache the results of SELECT queries. Here, it's set to 16 megabytes (16M).<br>
+
+`log_error = /var/log/mysql/error.log`: Specifies the location of the error log file, where MySQL writes error messages and diagnostic information.<br>
+
+`expire_logs_days = 10`: Specifies the number of days to retain binary log files before they are automatically purged. Here, it's set to 10 days.<br>
+
+`character-set-server = utf8mb4`: Sets the default character set for data stored in the database to UTF-8 encoding (utf8mb4), which supports a broader range of characters compared to traditional UTF-8.<br>
+
+`collation-server = utf8mb4_general_ci`: Sets the default collation for data stored in the database to UTF-8 Unicode (utf8mb4_general_ci), which is case-insensitive. This collation is suitable for general use with UTF-8 encoded data.<br>
+
+<hr>
+Let's go to the tools/ directory and create a file named initial_db.sql.<br>
+These SQL commands create a database for WordPress. It allows adding a new user, granting the necessary permissions to the user, and changing the password.
+
+<pre>
+    <code>
+        CREATE DATABASE IF NOT EXISTS wordpress;
+        CREATE USER IF NOT EXISTS 'mghalmi'@'%' IDENTIFIED BY '1234';
+        GRANT ALL PRIVILEGES ON wordpress.* TO 'mghalmi'@'%';
+        FLUSH PRIVILEGES;
+        ALTER USER 'root'@'localhost' IDENTIFIED BY 'root1234';
+    </code>
+</pre>
+
+### ⚙️ explanation
+
+`CREATE DATABASE IF NOT EXISTS wordpress;`:
+This command creates a new database named "wordpress" if it doesn't already exist.
+The IF NOT EXISTS clause ensures that the database is created only if it doesn't already exist.
+<br>
+
+`CREATE USER IF NOT EXISTS 'mghalmi'@'%' IDENTIFIED BY '1234';`:This command creates a new user named "mghalmi" with the password "1234".
+The IF NOT EXISTS clause ensures that the user is created only if it doesn't already exist.
+'%' specifies that the user can connect from any host. If you want to restrict connections to a specific host, you would replace '%' with the hostname or IP address.<br>
+
+
+`GRANT ALL PRIVILEGES ON wordpress. TO 'mghalmi'@'%';`:
+This command grants all privileges on the "wordpress" database to the user "mghalmi".
+The .* notation after the database name specifies that all tables within the "wordpress" database will be affected by this privilege grant.<br>
+
+
+`FLUSH PRIVILEGES;`:
+This command reloads the MySQL privileges to ensure that the changes made by the GRANT statement are applied immediately.
+Without this command, changes to user privileges may not take effect until the server is restarted or privileges are reloaded.<br>
+
+
+`ALTER USER 'root'@'localhost' IDENTIFIED BY 'root1234';`:
+This command changes the password for the root user to "root1234".
+It's a good practice to set a strong password for the root user to enhance security.<br>
+
+<hr>
+The mariadb/ directory will be like this:
+<br>
+
+![Alt text](img/image9.png)
