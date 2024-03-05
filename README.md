@@ -646,3 +646,59 @@ I wrote the explanations as comment lines in the file.
             driver: bridge
     </code>
 </pre>
+
+<hr>
+
+### 🎯 Makefile 
+
+Let's go to the main directory of the project (before srcs) and create a Makefile file.<br>
+
+<pre>
+    <code>
+      
+        DC := docker-compose -f ./srcs/docker-compose.yml
+
+        all:
+            @mkdir -p /home/data/wordpress
+            @mkdir -p /home/data/mysql
+            @$(DC) up -d --build
+
+        down:
+            @$(DC) down
+
+        re: clean all
+
+        clean:
+            @$(DC) down -v --remove-orphans     # Down stops containers and removes connected volumes
+            @docker rmi -f $$(docker images -q) # Deletes unused images
+
+        .PHONY: all down re clean
+
+    </code>
+</pre>
+
+#### 42.fr Link - etc/hosts
+
+In order to connect to x.42.fr, we need to edit the hosts file. To do this, open the hosts file in the etc/ directory.<br>
+
+You will see a file similar to the one below.<br>
+
+<pre>
+    <code>
+        127.0.0.1 localhost
+        127.0.1.1 debian
+
+        # The following lines are desirable for IPv6 capable hosts
+        ::1     localhost ip6-localhost ip6-loopback
+        ff02::1 ip6-allnodes
+        ff02::2 ip6-allrouters
+    </code>
+</pre>
+
+Add the new host as 27.0.1.2 mghalmi.42.fr.<br>
+Don't forget to write your own username instead of mghalmi :)<br>
+
+### 🚀 Operation - Make
+Let's go to the directory where the Makefile is located and type make and wait until the process is finished. The process takes a little long. After the process is completed, we can see our active containers by typing docker ps in the terminal.<br>
+
+You can access your WordPress site by entering the IP addresses written in the hosts file with your browser.<br>
