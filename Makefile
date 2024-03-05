@@ -15,3 +15,4 @@ clean:
 	@docker rmi -f $$(docker images -q) # Deletes unused images
 
 .PHONY: all down re clean
+
