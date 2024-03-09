@@ -222,20 +222,20 @@ These commands download WordPress and edit the wp-config file.
         #!/bin/sh
 
         if [ -f ./wp-config.php ]
-        then
-            echo "Wordpress already downloaded"
-        else
-            wget http://wordpress.org/latest.tar.gz
-            tar xfz latest.tar.gz
-            mv wordpress/* .
-            rm -rf latest.tar.gz
-            rm -rf wordpress
+            then
+                echo "Wordpress already downloaded"
+            else
 
-            sed -i "s/username_here/$MYSQL_USER/g" wp-config-sample.php
-            sed -i "s/password_here/$MYSQL_PASSWORD/g" wp-config-sample.php
-            sed -i "s/localhost/$MYSQL_HOSTNAME/g" wp-config-sample.php
-            sed -i "s/database_name_here/$MYSQL_DATABASE/g" wp-config-sample.php
-            cp wp-config-sample.php wp-config.php
+            curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+            chmod +x wp-cli.phar
+            mv wp-cli.phar /usr/local/bin/wp
+
+            wp core download --allow-root
+
+            wp config create --dbname=$MYSQL_DATABASE --dbuser=$MYSQL_USER --dbpass=$MYSQL_PASSWORD --dbhost=$MYSQL_HOSTNAME --allow-root
+
+            wp core install --url=$DOMAIN_NAME --title="Inception" --admin_user=$WORDPRESS_ADMIN_USER --admin_password=$WORDPRESS_ADMIN_PASSWORD --admin_email=$WORDPRESS_ADMIN_EMAIL --allow-root
+            wp user create $WORDPRESS_USER $WORDPRESS_USER_EMAIL --role=subscriber --user_pass=$WORDPRESS_USER_PASSWORD --allow-root
         fi
 
         exec "$@"
@@ -250,12 +250,18 @@ These commands download WordPress and edit the wp-config file.
 
 >if not : <br>
 
-`wget http://wordpress.org/latest.tar.gz` : download the latest version of WordPress from http://wordpress.org/latest.tar.gz<br>
-`tar xfz latest.tar.gz`: extracts the downloaded tarball.<br>
-`mv wordpress/* .`: moves all files from the wordpress directory (created by extracting the tarball) to the current directory (.). <br>
-`rm -rf latest.tar.gz || rm -rf wordpress`: remove the tar file and the extracted tarball.<br>
+`curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar` : This command downloads the WP-CLI (WordPress Command Line Interface) Phar (PHP Archive) file from the specified URL. WP-CLI is a command-line tool for managing WordPress installations. The -O option tells curl to write the output to a local file with the same name as the remote file.<br>
+`chmod +x wp-cli.phar`: This command makes the downloaded WP-CLI Phar file executable by changing its permissions. The +x option adds the execute permission to the file.<br>
+`mv wp-cli.phar /usr/local/bin/wp`: This command moves the WP-CLI Phar file to the /usr/local/bin directory and renames it to wp. This allows you to execute WP-CLI commands conveniently from the command line by simply typing wp. <br>
+`wp core download --allow-root`: This WP-CLI command downloads the latest version of the WordPress core files to the current directory. The --allow-root option is used to allow running WP-CLI commands as the root user.<br>
 
-`sed -i s/first/second/g`: This command performs an in-place search and replace operation in a file, replacing all occurrences of "first" with "second" in the wp-config-sample.php file with actual values obtained from environment variables (.env).<br>
+`wp config create --dbname=$MYSQL_DATABASE --dbuser=$MYSQL_USER --dbpass=$MYSQL_PASSWORD --dbhost=$MYSQL_HOSTNAME --allow-root`: This WP-CLI command generates a wp-config.php file with the database connection details provided as arguments. This file is essential for WordPress to connect to the database.<br>
+
+`wp core install --url=$DOMAIN_NAME --title="Inception" --admin_user=$WORDPRESS_ADMIN_USER --admin_password=$WORDPRESS_ADMIN_PASSWORD --admin_email=$WORDPRESS_ADMIN_EMAIL --allow-root`: This WP-CLI command installs WordPress with the specified configuration. It sets up the site URL, title, admin username, password, and email address.<br>
+
+`wp user create $WORDPRESS_USER $WORDPRESS_USER_EMAIL --role=subscriber --user_pass=$WORDPRESS_USER_PASSWORD --allow-root`: This WP-CLI command creates a new WordPress user with the specified username, email address, and role (subscriber). The --user_pass option sets the password for the user.
+
+<br>
 
 `fi`: else block is terminated here with fi, marking the end of the conditional execution.<br>
 
@@ -410,6 +416,7 @@ The mariadb/ directory will be like this:
 
 ![Alt text](img/image10.png)
 
+Nginx is a powerful and versatile web server software that offers performance, scalability, and flexibility for serving web content and managing web traffic in modern web environments.<br>
 Let's go to the nginx/ directory and create the Dockerfile file.
 
 <pre>
@@ -499,6 +506,8 @@ Begins with `server { and ends with }`: Defines the settings for a particular se
 `server_name mghalmi.42.fr;`: Specifies the server name that this configuration applies to.
 
 - SSL Configuration:
+<br>
+SSL stands for Secure Sockets Layer, and it is a cryptographic protocol used to establish secure communication over a computer network. SSL ensures that data transmitted between a client (such as a web browser) and a server (such as a website) is encrypted and protected from eavesdropping, tampering, or interception by malicious actors.<br>
 
 `ssl_certificate` and `ssl_certificate_key`: Specifies the paths to the SSL certificate and private key files.<rbr>
 
@@ -548,7 +557,7 @@ We will create the SSL Certificate using OpenSSL.
 
 if the ssl.tls certificate file does not exist<br>
 
-`openssl req -x509 -nodes -days 365 -newkey rsa:4096 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt -subj "/C=TR/ST=KOCAELI/L=GEBZE/O=42Kocaeli/CN=mghalmi.42.fr";` : he script generates a self-signed SSL/TLS certificate (nginx.crt) and private key (nginx.key) using the openssl req command The generated certificate is valid for 365 days (-days 365), and a new RSA private key of length 4096 bits (-newkey rsa:4096) is generated. The -subj option specifies the subject of the certificate, including the country (C), state (ST), locality (L), organization (O), and common name (CN). x509: Creates signed certificate.
+`openssl req -x509 -nodes -days 365 -newkey rsa:4096 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt -subj "/C=TR/ST=KOCAELI/L=GEBZE/O=42Kocaeli/CN=mghalmi.42.fr";` : The script generates a self-signed SSL/TLS certificate (nginx.crt) and private key (nginx.key) using the openssl req command The generated certificate is valid for 365 days (-days 365), and a new RSA private key of length 4096 bits (-newkey rsa:4096) is generated. The -subj option specifies the subject of the certificate, including the country (C), state (ST), locality (L), organization (O), and common name (CN). x509: Creates signed certificate.
 
 <hr>
 The nginx/ directory will be like this:
