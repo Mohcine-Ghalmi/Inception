@@ -43,7 +43,9 @@ services:
         container_name: wordpress
         depends_on:
             - mariadb
-        build: ./requirements/wordpress
+        build:
+        context: './requirements/wordpress'
+        dockerfile: Dockerfile
         restart: always
         env_file:
             - .env
