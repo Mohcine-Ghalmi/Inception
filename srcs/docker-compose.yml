@@ -28,7 +28,6 @@ services:
      - network
  
  mariadb:
-     image: mariadb
      container_name: mariadb
      build: ./requirements/mariadb
 
@@ -43,7 +42,6 @@ services:
      - .env
  
  wordpress:
-     image: wordpress
      container_name: wordpress
      depends_on:
      - mariadb
@@ -59,14 +57,12 @@ services:
  # It stores service data and establishes a connection with the main system..
 volumes:
  wordpress:
-    name: wordpress
     driver: local
     driver_opts:
      o: 'bind'
      type: none
      device: /home/mghalmi/data/wordpress
  mariadb:
-    name: mariadb
     driver: local
     driver_opts:
      o: 'bind'
