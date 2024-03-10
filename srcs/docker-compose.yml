@@ -59,15 +59,15 @@ volumes:
     mariadb_data:
         driver: local
         driver_opts:
-        type: none
-        device: /home/data/mysql
-        o: bind
+            type: none
+            device: /home/data/mysql
+            o: bind
     wordpress_data:
         driver: local
         driver_opts:
-        type: none
-        device: /home/data/wordpress
-        o: bind
+            type: none
+            device: /home/data/wordpress
+            o: bind
 
 # Connects to default network drive
 networks:
