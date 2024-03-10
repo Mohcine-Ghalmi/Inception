@@ -42,17 +42,17 @@ services:
     wordpress:
         container_name: wordpress
         depends_on:
-        - mariadb
+            - mariadb
         build:
         context: ./requirements/wordpress
         dockerfile: Dockerfile
         restart: always
         env_file:
-        - .env
+            - .env
         volumes:
-        - wordpress_data:/var/www/html
+            - wordpress_data:/var/www/html
         networks:
-        - network
+            - network
 
 # It stores service data and establishes a connection with the main system..
 volumes:
