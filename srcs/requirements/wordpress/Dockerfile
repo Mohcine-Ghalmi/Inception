@@ -30,8 +30,6 @@ WORKDIR /var/www/html
 
 
 EXPOSE 9000
-VOLUME /app/log
-
 
 CMD ["/usr/sbin/php-fpm7.3", "-F"]
 
