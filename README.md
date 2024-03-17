@@ -704,7 +704,7 @@ You will see a file similar to the one below.<br>
     </code>
 </pre>
 
-Add the new host as 27.0.1.2 mghalmi.42.fr.<br>
+Add the new host as 127.0.1.2 mghalmi.42.fr.<br>
 Don't forget to write your own username instead of mghalmi :)<br>
 
 ### 🚀 Operation - Make
