@@ -80,7 +80,7 @@ Arrange and write the following commands into the file according to your needs.<
 IMPORTANT NOTE: Do not include this file when uploading your project to repo 42. Otherwise you get <b>-42</b>.</br>
 <pre>
     <code>
-        DOMAIN_NAME=enes.42.fr
+        DOMAIN_NAME=mghalmi.42.fr
         MYSQL_HOSTNAME=mariadb
         MYSQL_DATABASE=wordpress
         MYSQL_USER=mghalmi
